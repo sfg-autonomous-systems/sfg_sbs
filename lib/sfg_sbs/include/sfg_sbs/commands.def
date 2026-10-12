@@ -1,0 +1,59 @@
+// clang-format off
+#ifndef SFG_SBS_DEFINE_COMMAND
+#define SFG_SBS_DEFINE_COMMAND(...)
+#endif
+
+// Defines the available Smart Battery Slave Functions according to the Smart Battery Data Specification Rev 1.1, 
+// Appendix A. The following columns are defined:
+//
+// - Name: A straight mapping of the first column in appendix A.
+// - Wire Code: A straight mapping of the second column in appendix A.
+// - DataType: The union of "Units describing atomic data types" and "Units describing aggregate/packed data types"
+//   of Appendix B.
+// - Access Type: A straight mapping of the third column in appendix A.
+// - Default Value: Assigned based on each command's corresponding description.
+// - Optional: Whether the specification defines the command as optional as per Appendix A.
+//
+SFG_SBS_DEFINE_COMMAND(ManufacturerAccess,      0x00,   Word,           ReadWrite, 0x0000,    false)
+// The default value of RemainingCapacityAlarm below is a sentinel value. The actual default value depends on the
+// design capacity of the battery (see §5.1.2) and is computed at runtime in get_default_value(...).
+SFG_SBS_DEFINE_COMMAND(RemainingCapacityAlarm,  0x01,   UnsignedInt,    ReadWrite, 0xFFFF,    false)
+SFG_SBS_DEFINE_COMMAND(RemainingTimeAlarm,      0x02,   UnsignedInt,    ReadWrite, 0x000A,    false)
+SFG_SBS_DEFINE_COMMAND(BatteryMode,             0x03,   Word,           ReadWrite, 0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(AtRate,                  0x04,   Int,            ReadWrite, 0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(AtRateTimeToFull,        0x05,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(AtRateTimeToEmpty,       0x06,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(AtRateOK,                0x07,   Boolean,        ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(Temperature,             0x08,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(Voltage,                 0x09,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(Current,                 0x0A,   Int,            ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(AverageCurrent,          0x0B,   Int,            ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(MaxError,                0x0C,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(RelativeStateOfCharge,   0x0D,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(AbsoluteStateOfCharge,   0x0E,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(RemainingCapacity,       0x0F,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(FullChargeCapacity,      0x10,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(RunTimeToEmpty,          0x11,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(AverageTimeToEmpty,      0x12,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(AverageTimeToFull,       0x13,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(ChargingCurrent,         0x14,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(ChargingVoltage,         0x15,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(BatteryStatus,           0x16,   Word,           ReadOnly,  0x0080,    false)
+SFG_SBS_DEFINE_COMMAND(CycleCount,              0x17,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(DesignCapacity,          0x18,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(DesignVoltage,           0x19,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(SpecificationInfo,       0x1A,   UnsignedInt,    ReadOnly,  0x0010,    false)
+SFG_SBS_DEFINE_COMMAND(ManufactureDate,         0x1B,   UnsignedInt,    ReadOnly,  0x0000,    false)
+SFG_SBS_DEFINE_COMMAND(SerialNumber,            0x1C,   UnsignedInt,    ReadOnly,  0x0000,    false)
+// The specification does not mandate a well-defined default value for below String commands.
+// The default value specified here is a library convention.
+SFG_SBS_DEFINE_COMMAND(ManufacturerName,        0x20,   String,         ReadOnly,  "unknown", false)
+SFG_SBS_DEFINE_COMMAND(DeviceName,              0x21,   String,         ReadOnly,  "unknown", false)
+SFG_SBS_DEFINE_COMMAND(DeviceChemistry,         0x22,   String,         ReadOnly,  "unknown", false)
+SFG_SBS_DEFINE_COMMAND(ManufacturerData,        0x23,   Data,           ReadOnly,  "",        false)
+SFG_SBS_DEFINE_COMMAND(OptionalMfgFunction5,    0x2F,   Data,           ReadWrite, "",        true)
+SFG_SBS_DEFINE_COMMAND(OptionalMfgFunction4,    0x3C,   Word,           ReadWrite, 0x0000,    true)
+SFG_SBS_DEFINE_COMMAND(OptionalMfgFunction3,    0x3D,   Word,           ReadWrite, 0x0000,    true)
+SFG_SBS_DEFINE_COMMAND(OptionalMfgFunction2,    0x3E,   Word,           ReadWrite, 0x0000,    true)
+SFG_SBS_DEFINE_COMMAND(OptionalMfgFunction1,    0x3F,   Word,           ReadWrite, 0x0000,    true)
+// clang-format on

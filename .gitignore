@@ -1,0 +1,11 @@
+# Visual Studio Code
+.vscode/*
+!.vscode/clang_format.yaml
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+#  PlatformIO
+.pio
+.pioenvs
+.piolibdeps

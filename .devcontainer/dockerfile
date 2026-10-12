@@ -1,0 +1,52 @@
+FROM ubuntu:22.04
+
+ENV SHELL=/bin/bash
+SHELL ["/bin/bash", "-c"]
+USER root
+
+#########################################################################################################
+# Update and install required apt-get and pip dependencies.                                             #
+#########################################################################################################
+RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        curl \
+        git \
+        git-lfs \
+        libudev-dev \
+        libusb-1.0-0-dev \
+        nano \
+        poppler-utils \
+        python-is-python3 \
+        python3 \
+        python3-pip \
+        python3-venv \
+        ssh-client \
+        sudo \
+        tree \
+        tzdata \
+        usbutils && \
+    apt-get -y autoremove && apt-get clean && rm -rf "/var/lib/apt/lists/"*
+
+# Install PlatformIO globally.
+RUN pip install --upgrade pip && \
+    pip install platformio
+
+#########################################################################################################
+# Create a non-root user.                                                                               #
+#########################################################################################################
+ARG USERNAME=developer
+ENV USERNAME=${USERNAME}
+ARG USER_UID=1000
+ARG USER_GID=${USER_UID}
+ENV HOME=/home/${USERNAME}
+
+# Safely create user and group, add to dialout and plugdev for serial port access.
+RUN groupadd --gid "${USER_GID}" "${USERNAME}" && \
+    useradd --no-log-init --uid "${USER_UID}" --gid "${USER_GID}" -m "${USERNAME}" -s /bin/bash && \
+    echo "${USERNAME} ALL=(root) NOPASSWD:ALL" > "/etc/sudoers.d/${USERNAME}" && \
+    chmod 0440 "/etc/sudoers.d/${USERNAME}" && \
+    usermod -aG dialout,plugdev,sudo "${USERNAME}"
+
+# Activate the previously created user.
+USER ${USERNAME}

@@ -1,0 +1,88 @@
+{
+  "name": "SFG SBS",
+  "build": {
+    "dockerfile": "dockerfile",
+    "context": ".."
+  },
+  "initializeCommand": [
+    "${localWorkspaceFolder}/.devcontainer/initialize_command"
+  ],
+  "postStartCommand": [
+    "${containerWorkspaceFolder}/.devcontainer/post_start_command"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // General settings.
+        "editor.formatOnSave": true,
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.mypy_cache": true
+        },
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "args": [
+              "--login"
+            ]
+          }
+        },
+        "workbench.view.showQuietly": {
+          "workbench.panel.output": true
+        },
+        "docker.languageserver.formatter.ignoreMultilineInstructions": true,
+        "docker.lsp.experimental.vulnerabilityScanning": false,
+        "docker.extension.dockerEngineAvailabilityPrompt": false,
+        "shellformat.effectLanguages": [
+          "shellscript",
+          "dotenv",
+          "hosts",
+          "jvmoptions",
+          "ignore",
+          "gitignore",
+          "properties",
+          "spring-boot-properties",
+          "azcli",
+          "bats"
+        ],
+        "shellcheck.customArgs": [
+          "--external-sources"
+        ],
+        // C++ settings.
+        "platformio-ide.disablePIOHomeStartup": true,
+        "platformio-ide.pioHomeServerHttpHost": "0.0.0.0",
+        "C_Cpp.clang_format_style": "file:${containerWorkspaceFolder}/.vscode/clang_format.yaml",
+        "[cpp]": {
+          "editor.defaultFormatter": "ms-vscode.cpptools"
+        },
+        "[cmake]": {
+          "editor.defaultFormatter": "josetr.cmake-language-support-vscode"
+        },
+        "cmake.languageSupport.dotnetPath": "/usr/bin/dotnet",
+        "cmake.configureOnOpen": false
+      },
+      "extensions": [
+        // General extensions.
+        "eamodio.gitlens",
+        "foxundermoon.shell-format@7.2.5",
+        "GitHub.copilot",
+        "ms-azuretools.vscode-docker",
+        "timonwong.shellcheck",
+        "tomoki1207.pdf",
+        // C++ extensions.
+        "cschlosser.doxdocgen",
+        "jeff-hykin.better-cpp-syntax",
+        "josetr.cmake-language-support-vscode",
+        "ms-vscode.cpptools-extension-pack",
+        "platformio.platformio-ide"
+      ]
+    }
+  },
+  "runArgs": [
+    "--privileged",
+    "--network=host",
+    "-v",
+    "/dev:/dev"
+  ]
+}

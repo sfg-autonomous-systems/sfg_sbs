@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+sfg_sbs__post_start_command() {
+    pio init --ide vscode
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    set -e
+    sfg_sbs__post_start_command "${@}"
+fi

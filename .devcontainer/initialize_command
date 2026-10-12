@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+sfg_sbs__initialize_command() {
+    declare -A UDEV_RULES=(
+        ["/etc/udev/rules.d/99-platformio-udev.rules"]="https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/system/99-platformio-udev.rules"
+    )
+
+    local rules_installed
+    rules_installed=false
+
+    for destination in "${!UDEV_RULES[@]}"; do
+        local url="${UDEV_RULES[${destination}]}"
+
+        if [[ ! -f "${destination}" ]]; then
+            local name
+            name=$(basename "${destination}" | sed 's/\.rules$//')
+
+            echo "Installing udev rules '${name}'..."
+            curl -fsSL "${url}" | sudo tee "${destination}" >"/dev/null"
+            rules_installed=true
+        fi
+    done
+
+    if [[ "${rules_installed}" == true ]]; then
+        echo "Reloading udev rules..."
+        sudo udevadm control --reload-rules && sudo udevadm trigger
+    fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    set -e
+    sfg_sbs__initialize_command "${@}"
+fi
