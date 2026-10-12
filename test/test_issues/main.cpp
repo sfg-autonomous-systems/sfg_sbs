@@ -95,10 +95,11 @@ void test_issue_1_transaction_error_leaves_battery_status_untouched()
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x0F, fixture.m_tx_buffer.front() & 0x0F, "observed: handler nibble passes through; §4.3.1 requires the transaction's error code");
 }
 
-/// Issue #1, #5: OBSERVED a read of a command without traits is answered with zero filler; §4.3.2 requires
+/// Issue #5: OBSERVED a read of a command without traits is answered with zero filler; §4.3.2 requires
 /// a NACK or an SCL timeout. Deliberate: Wire cannot NACK a chosen byte, and hosts such as the
-/// Turtlebot 4 treat a held clock as a dead battery.
-void test_issue_1_5_request_of_unknown_command_emits_filler()
+/// Turtlebot 4 treat a held clock as a dead battery. The filler stays after the fix, so this pin keeps
+/// passing and must be rewritten together with the fix.
+void test_issue_5_request_of_unknown_command_emits_filler()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_busy_nibble, nullptr);
@@ -208,7 +209,8 @@ void test_issue_4_no_charging_broadcast_api()
 
 /// Issue #13: OBSERVED the AlarmWarning() command byte is the literal 0x16, the default battery address 0x0B shifted left.
 /// @details §5.4.1/§6.3 require the battery's own address in the command-code slot; the constructor never receives
-///          that address, so a battery at any other address still sends 0x16.
+///          that address, so a battery at any other address still sends 0x16. 0x16 stays correct at the default
+///          address, so this pin keeps passing after the fix and must be rewritten with a non-default address.
 void test_issue_13_broadcast_command_byte_is_hardcoded()
 {
     TestFixture fixture;
@@ -252,6 +254,8 @@ void test_issue_7_host_read_returns_error_nibble_verbatim()
 }
 
 /// Issue #9: OBSERVED the host API offers no receive entry point, so a pushed broadcast has no taker (§5.4.1).
+/// @details Probes Host only. A receiver built as a separate component leaves this pin passing, so it must be
+///          rewritten together with the fix.
 void test_issue_9_host_has_no_broadcast_receive_api()
 {
     TEST_ASSERT_TRUE_MESSAGE((host_lacks_broadcast_receive_api<TestFixture::Host>::value), "observed: Host has no receive entry point; §5.4.1 pushes are addressed to a battery the host must service");
@@ -390,12 +394,12 @@ int main(int argc, char **argv)
 {
     UNITY_BEGIN();
     RUN_TEST(test_issue_1_transaction_error_leaves_battery_status_untouched);
-    RUN_TEST(test_issue_1_5_request_of_unknown_command_emits_filler);
     RUN_TEST(test_issue_1_oversized_block_count_reports_no_bad_size);
     RUN_TEST(test_issue_2_broadcast_ignores_battery_mode_bits);
     RUN_TEST(test_issue_3_broadcast_repeats_without_cadence);
     RUN_TEST(test_issue_3_no_on_state_suppression_window);
     RUN_TEST(test_issue_4_no_charging_broadcast_api);
+    RUN_TEST(test_issue_5_request_of_unknown_command_emits_filler);
     RUN_TEST(test_issue_6_battery_mode_write_is_unvalidated);
     RUN_TEST(test_issue_7_host_read_returns_error_nibble_verbatim);
     RUN_TEST(test_issue_9_host_has_no_broadcast_receive_api);
