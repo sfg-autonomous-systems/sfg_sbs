@@ -72,8 +72,8 @@ struct host_lacks_broadcast_receive_api<
 {
 };
 
-/// I2: OBSERVED battery transaction errors never reach the BatteryStatus() nibble.
-void test_i2_transaction_error_leaves_battery_status_untouched()
+/// Issue #1: OBSERVED battery transaction errors never reach the BatteryStatus() nibble.
+void test_issue_1_transaction_error_leaves_battery_status_untouched()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_busy_nibble, nullptr);
@@ -95,10 +95,10 @@ void test_i2_transaction_error_leaves_battery_status_untouched()
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x0F, fixture.m_tx_buffer.front() & 0x0F, "observed: handler nibble passes through; §4.3.1 requires the transaction's error code");
 }
 
-/// I2, I11: OBSERVED a read of a command without traits is answered with zero filler; §4.3.2 requires
+/// Issue #1, #5: OBSERVED a read of a command without traits is answered with zero filler; §4.3.2 requires
 /// a NACK or an SCL timeout. Deliberate: Wire cannot NACK a chosen byte, and hosts such as the
 /// Turtlebot 4 treat a held clock as a dead battery.
-void test_i2_i11_request_of_unknown_command_emits_filler()
+void test_issue_1_5_request_of_unknown_command_emits_filler()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_busy_nibble, nullptr);
@@ -120,12 +120,12 @@ void test_i2_i11_request_of_unknown_command_emits_filler()
     }
 }
 
-/// I2: OBSERVED a block write with an incorrect data-block size is refused with BadSize,
+/// Issue #1: OBSERVED a block write with an incorrect data-block size is refused with BadSize,
 /// and no Appendix C code is recorded: a Battery instance keeps no transaction error register, so the mandated
 /// BadSize (0x0006) has no observable home. The capacity refusal itself is asserted as specified
 /// behaviour by test_battery_rejects_block_write_over_max_data_size.
 /// The frame targets the writable block-capable row (0x2F) so the count byte reaches the capacity check.
-void test_i2_oversized_block_count_reports_no_bad_size()
+void test_issue_1_oversized_block_count_reports_no_bad_size()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, capture_write);
@@ -160,8 +160,8 @@ void test_i2_oversized_block_count_reports_no_bad_size()
         "observed: the reply nibble is the handler's, not a recorded code; Appendix C requires BadSize (0x0006)");
 }
 
-/// I7: OBSERVED broadcasts ignore ALARM_MODE and CHARGER_MODE.
-void test_i7_broadcast_ignores_battery_mode_bits()
+/// Issue #2: OBSERVED broadcasts ignore ALARM_MODE and CHARGER_MODE.
+void test_issue_2_broadcast_ignores_battery_mode_bits()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, nullptr, 0x08, 0x09);
@@ -174,8 +174,8 @@ void test_i7_broadcast_ignores_battery_mode_bits()
     TEST_ASSERT_EQUAL_UINT_MESSAGE(6, fixture.m_tx_buffer.size(), "observed: both peers are addressed with the bits set");
 }
 
-/// I9: OBSERVED broadcasts carry no cadence; an alarm repeats immediately at every call.
-void test_i9_broadcast_repeats_without_cadence()
+/// Issue #3: OBSERVED broadcasts carry no cadence; an alarm repeats immediately at every call.
+void test_issue_3_broadcast_repeats_without_cadence()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, nullptr, 0x08, 0x09);
@@ -188,8 +188,8 @@ void test_i9_broadcast_repeats_without_cadence()
     TEST_ASSERT_EQUAL_UINT_MESSAGE(12, fixture.m_tx_buffer.size(), "observed: immediate repeat; §5.4.1 prescribes a 10 second cadence");
 }
 
-/// I9: OBSERVED no "On State" suppression window (§4.4.2, §5.4).
-void test_i9_no_on_state_suppression_window()
+/// Issue #3: OBSERVED no "On State" suppression window (§4.4.2, §5.4).
+void test_issue_3_no_on_state_suppression_window()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, nullptr, 0x08, 0x09);
@@ -200,16 +200,16 @@ void test_i9_no_on_state_suppression_window()
     TEST_ASSERT_TRUE_MESSAGE(broadcast.value(), "observed: broadcast on the first call; §4.4.2 forbids broadcasting within 10s of the On State");
 }
 
-/// I10: OBSERVED the battery API offers no ChargingCurrent()/ChargingVoltage() broadcast (§5.2).
-void test_i10_no_charging_broadcast_api()
+/// Issue #4: OBSERVED the battery API offers no ChargingCurrent()/ChargingVoltage() broadcast (§5.2).
+void test_issue_4_no_charging_broadcast_api()
 {
     TEST_ASSERT_TRUE_MESSAGE(battery_lacks_charging_broadcast<TestFixture::Battery>::value, "observed: Battery has no charging-broadcast member; §5.2 requires it");
 }
 
-/// I32: OBSERVED the AlarmWarning() command byte is the literal 0x16, the default battery address 0x0B shifted left.
+/// Issue #13: OBSERVED the AlarmWarning() command byte is the literal 0x16, the default battery address 0x0B shifted left.
 /// @details §5.4.1/§6.3 require the battery's own address in the command-code slot; the constructor never receives
 ///          that address, so a battery at any other address still sends 0x16.
-void test_i32_broadcast_command_byte_is_hardcoded()
+void test_issue_13_broadcast_command_byte_is_hardcoded()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, nullptr, 0x08, std::nullopt);
@@ -218,8 +218,8 @@ void test_i32_broadcast_command_byte_is_hardcoded()
     TEST_ASSERT_EQUAL_HEX8_MESSAGE(0x16, fixture.pop_tx(), "observed: literal 0x16, valid only while the battery sits at 0x0B; §6.3 requires the battery's own address");
 }
 
-/// I16: OBSERVED BatteryMode() writes are unvalidated, including reserved and read-only bits.
-void test_i16_battery_mode_write_is_unvalidated()
+/// Issue #6: OBSERVED BatteryMode() writes are unvalidated, including reserved and read-only bits.
+void test_issue_6_battery_mode_write_is_unvalidated()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, capture_write);
@@ -238,8 +238,8 @@ void test_i16_battery_mode_write_is_unvalidated()
     TEST_ASSERT_TRUE_MESSAGE(host_write.has_value(), "observed: the host can write reserved BatteryMode() bits");
 }
 
-/// I22: OBSERVED the host discards the battery's error nibble: a word with a populated nibble is returned verbatim.
-void test_i22_host_read_returns_error_nibble_verbatim()
+/// Issue #7: OBSERVED the host discards the battery's error nibble: a word with a populated nibble is returned verbatim.
+void test_issue_7_host_read_returns_error_nibble_verbatim()
 {
     TestFixture fixture;
     TestFixture::Host host(fixture.m_wire);
@@ -251,16 +251,16 @@ void test_i22_host_read_returns_error_nibble_verbatim()
     TEST_ASSERT_EQUAL_UINT16_MESSAGE(0x6002, value.value(), "observed: raw word, the API exposes no error-code handling");
 }
 
-/// I28: OBSERVED the host API offers no receive entry point, so a pushed broadcast has no taker (§5.4.1).
-void test_i28_host_has_no_broadcast_receive_api()
+/// Issue #9: OBSERVED the host API offers no receive entry point, so a pushed broadcast has no taker (§5.4.1).
+void test_issue_9_host_has_no_broadcast_receive_api()
 {
     TEST_ASSERT_TRUE_MESSAGE((host_lacks_broadcast_receive_api<TestFixture::Host>::value), "observed: Host has no receive entry point; §5.4.1 pushes are addressed to a battery the host must service");
 }
 
-/// I28: OBSERVED the battery path refuses the frame the broadcast sends, so it is not a host-side receiver.
+/// Issue #9: OBSERVED the battery path refuses the frame the broadcast sends, so it is not a host-side receiver.
 /// @details The push arrives as a 3-byte write to 0x16, which the battery-function traits mark read-only, so
 ///          handle_receive() rejects it before routing; a host built on this path never sees the alarm.
-void test_i28_battery_path_refuses_a_broadcast_frame()
+void test_issue_9_battery_path_refuses_a_broadcast_frame()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, capture_write);
@@ -278,17 +278,17 @@ void test_i28_battery_path_refuses_a_broadcast_frame()
     TEST_ASSERT_FALSE_MESSAGE(s_write_called, "observed: the alarm never reaches the application handler");
 }
 
-/// I29: OBSERVED SpecificationInfo() defaults to 0x0010, i.e. version 1.0 with the reserved revision 0.
-void test_i29_specification_info_default_is_not_v1_1()
+/// Issue #10: OBSERVED SpecificationInfo() defaults to 0x0010, i.e. version 1.0 with the reserved revision 0.
+void test_issue_10_specification_info_default_is_not_v1_1()
 {
     const auto value = etl::get<sfg_sbs::Word>(sfg_sbs::get_default_value(sfg_sbs::Command::SpecificationInfo)).as_uint();
 
     TEST_ASSERT_EQUAL_HEX16_MESSAGE(0x0010, value, "observed: 0x0010 (version 1.0, reserved revision 0); §5.1.25 encodes v1.1 as 0x0021");
 }
 
-/// I30: OBSERVED a read request the host never clocks out stays armed across a refused receive, so the next
+/// Issue #11: OBSERVED a read request the host never clocks out stays armed across a refused receive, so the next
 /// request answers the stale register instead of filler.
-void test_i30_orphaned_read_answers_next_unknown_request()
+void test_issue_11_orphaned_read_answers_next_unknown_request()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_command_code, nullptr);
@@ -303,8 +303,8 @@ void test_i30_orphaned_read_answers_next_unknown_request()
     TEST_ASSERT_EQUAL_HEX8_MESSAGE(0x09, fixture.pop_tx(), "observed: the 0x37 request is answered with Voltage(); specified: filler for a command without an active read");
 }
 
-/// I31: OBSERVED a Write Word frame with a byte beyond the word is accepted; the extra byte is drained silently.
-void test_i31_word_write_with_trailing_byte_is_accepted()
+/// Issue #12: OBSERVED a Write Word frame with a byte beyond the word is accepted; the extra byte is drained silently.
+void test_issue_12_word_write_with_trailing_byte_is_accepted()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, capture_write);
@@ -315,8 +315,8 @@ void test_i31_word_write_with_trailing_byte_is_accepted()
     TEST_ASSERT_TRUE_MESSAGE(result.has_value(), "observed: a 3-byte payload to a word command is accepted; SMBus §7.7 lists an incorrect data size as an error");
 }
 
-/// I31: OBSERVED a Write Block frame carrying more data bytes than its count is accepted.
-void test_i31_block_write_count_below_payload_is_accepted()
+/// Issue #12: OBSERVED a Write Block frame carrying more data bytes than its count is accepted.
+void test_issue_12_block_write_count_below_payload_is_accepted()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, capture_write);
@@ -327,8 +327,8 @@ void test_i31_block_write_count_below_payload_is_accepted()
     TEST_ASSERT_TRUE_MESSAGE(result.has_value(), "observed: count 1 with 3 data bytes is accepted; Appendix C requires BadSize (0x0006)");
 }
 
-/// I31: OBSERVED a Write Block frame with a zero count is accepted.
-void test_i31_block_write_with_zero_count_is_accepted()
+/// Issue #12: OBSERVED a Write Block frame with a zero count is accepted.
+void test_issue_12_block_write_with_zero_count_is_accepted()
 {
     TestFixture fixture;
     TestFixture::Battery battery(fixture.m_wire, reply_zero, capture_write);
@@ -339,8 +339,8 @@ void test_i31_block_write_with_zero_count_is_accepted()
     TEST_ASSERT_TRUE_MESSAGE(result.has_value(), "observed: a zero count is accepted; SMBus §7.5.7: the byte count may not be 0");
 }
 
-/// I31: OBSERVED the host sends an empty block, i.e. a zero count.
-void test_i31_host_accepts_empty_block_write()
+/// Issue #12: OBSERVED the host sends an empty block, i.e. a zero count.
+void test_issue_12_host_accepts_empty_block_write()
 {
     TestFixture fixture;
     TestFixture::Host host(fixture.m_wire);
@@ -349,22 +349,22 @@ void test_i31_host_accepts_empty_block_write()
     TEST_ASSERT_TRUE_MESSAGE(result.has_value(), "observed: an empty block is written with count 0; SMBus §7.5.7: the byte count may not be 0");
 }
 
-/// I31: OBSERVED ManufacturerData() defaults to an empty block, which a battery answers with a zero count.
-void test_i31_manufacturer_data_default_is_empty_block()
+/// Issue #12: OBSERVED ManufacturerData() defaults to an empty block, which a battery answers with a zero count.
+void test_issue_12_manufacturer_data_default_is_empty_block()
 {
     const auto value = sfg_sbs::get_default_value(sfg_sbs::Command::ManufacturerData);
 
     TEST_ASSERT_EQUAL_UINT_MESSAGE(0, etl::get<sfg_sbs::Block>(value).size(), "observed: empty default; SMBus §7.5.7: the byte count may not be 0");
 }
 
-/// I33: OBSERVED the read handler returns a bare value, so the application cannot report an Appendix C error.
-void test_i33_read_handler_has_no_error_channel()
+/// Issue #14: OBSERVED the read handler returns a bare value, so the application cannot report an Appendix C error.
+void test_issue_14_read_handler_has_no_error_channel()
 {
     TEST_ASSERT_TRUE_MESSAGE((std::is_same_v<std::invoke_result_t<sfg_sbs::ReadHandler, sfg_sbs::Command>, sfg_sbs::Value>), "observed: ReadHandler returns Value; Busy, Overflow/Underflow and UnsupportedCommand have no path");
 }
 
-/// I33: OBSERVED the write handler returns nothing, so the application cannot refuse a written value.
-void test_i33_write_handler_has_no_error_channel()
+/// Issue #14: OBSERVED the write handler returns nothing, so the application cannot refuse a written value.
+void test_issue_14_write_handler_has_no_error_channel()
 {
     TEST_ASSERT_TRUE_MESSAGE((std::is_same_v<std::invoke_result_t<sfg_sbs::WriteHandler, sfg_sbs::Command, const sfg_sbs::Value &>, void>), "observed: WriteHandler returns void; Busy and Overflow/Underflow have no path");
 }
@@ -389,26 +389,26 @@ void tearDown()
 int main(int argc, char **argv)
 {
     UNITY_BEGIN();
-    RUN_TEST(test_i2_transaction_error_leaves_battery_status_untouched);
-    RUN_TEST(test_i2_i11_request_of_unknown_command_emits_filler);
-    RUN_TEST(test_i2_oversized_block_count_reports_no_bad_size);
-    RUN_TEST(test_i7_broadcast_ignores_battery_mode_bits);
-    RUN_TEST(test_i9_broadcast_repeats_without_cadence);
-    RUN_TEST(test_i9_no_on_state_suppression_window);
-    RUN_TEST(test_i10_no_charging_broadcast_api);
-    RUN_TEST(test_i16_battery_mode_write_is_unvalidated);
-    RUN_TEST(test_i22_host_read_returns_error_nibble_verbatim);
-    RUN_TEST(test_i28_host_has_no_broadcast_receive_api);
-    RUN_TEST(test_i28_battery_path_refuses_a_broadcast_frame);
-    RUN_TEST(test_i29_specification_info_default_is_not_v1_1);
-    RUN_TEST(test_i30_orphaned_read_answers_next_unknown_request);
-    RUN_TEST(test_i31_word_write_with_trailing_byte_is_accepted);
-    RUN_TEST(test_i31_block_write_count_below_payload_is_accepted);
-    RUN_TEST(test_i31_block_write_with_zero_count_is_accepted);
-    RUN_TEST(test_i31_host_accepts_empty_block_write);
-    RUN_TEST(test_i31_manufacturer_data_default_is_empty_block);
-    RUN_TEST(test_i32_broadcast_command_byte_is_hardcoded);
-    RUN_TEST(test_i33_read_handler_has_no_error_channel);
-    RUN_TEST(test_i33_write_handler_has_no_error_channel);
+    RUN_TEST(test_issue_1_transaction_error_leaves_battery_status_untouched);
+    RUN_TEST(test_issue_1_5_request_of_unknown_command_emits_filler);
+    RUN_TEST(test_issue_1_oversized_block_count_reports_no_bad_size);
+    RUN_TEST(test_issue_2_broadcast_ignores_battery_mode_bits);
+    RUN_TEST(test_issue_3_broadcast_repeats_without_cadence);
+    RUN_TEST(test_issue_3_no_on_state_suppression_window);
+    RUN_TEST(test_issue_4_no_charging_broadcast_api);
+    RUN_TEST(test_issue_6_battery_mode_write_is_unvalidated);
+    RUN_TEST(test_issue_7_host_read_returns_error_nibble_verbatim);
+    RUN_TEST(test_issue_9_host_has_no_broadcast_receive_api);
+    RUN_TEST(test_issue_9_battery_path_refuses_a_broadcast_frame);
+    RUN_TEST(test_issue_10_specification_info_default_is_not_v1_1);
+    RUN_TEST(test_issue_11_orphaned_read_answers_next_unknown_request);
+    RUN_TEST(test_issue_12_word_write_with_trailing_byte_is_accepted);
+    RUN_TEST(test_issue_12_block_write_count_below_payload_is_accepted);
+    RUN_TEST(test_issue_12_block_write_with_zero_count_is_accepted);
+    RUN_TEST(test_issue_12_host_accepts_empty_block_write);
+    RUN_TEST(test_issue_12_manufacturer_data_default_is_empty_block);
+    RUN_TEST(test_issue_13_broadcast_command_byte_is_hardcoded);
+    RUN_TEST(test_issue_14_read_handler_has_no_error_channel);
+    RUN_TEST(test_issue_14_write_handler_has_no_error_channel);
     return UNITY_END();
 }
